@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>บันทึกน้ำหนักการยกเวท</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;600;700&family=Barlow+Condensed:wght@600;700&display=swap">
+<style>
+:root{--bg:#f2f3ef;--card:#fff;--ink:#1b2220;--mute:#667370;--line:#d9ddd7;--acc:#1f7a6d;--acc-ink:#fff;--pr:#b4581a;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121615;--card:#1b2120;--ink:#e8ede9;--mute:#97a39f;--line:#2e3735;--acc:#4bb8a6;--acc-ink:#0b1412;--pr:#e59a5c}}
+:root[data-theme="dark"]{--bg:#121615;--card:#1b2120;--ink:#e8ede9;--mute:#97a39f;--line:#2e3735;--acc:#4bb8a6;--acc-ink:#0b1412;--pr:#e59a5c}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Noto Sans Thai",system-ui,sans-serif}
+main{max-width:640px;margin:0 auto;padding:20px 16px 48px}
+h1{font:700 28px/1.2 "Noto Sans Thai",sans-serif;margin:8px 0 18px}
+h2{font-size:17px;margin:28px 0 10px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+label{display:block;font-size:14px;color:var(--mute);margin-bottom:4px}
+.full{grid-column:1/-1}
+input{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px;min-height:46px}
+input:focus-visible,button:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.num{font-family:"Barlow Condensed","Noto Sans Thai",sans-serif;font-weight:700;font-size:24px}
+button{font:inherit;cursor:pointer;border-radius:8px;min-height:46px;padding:0 16px}
+.primary{width:100%;margin-top:14px;background:var(--acc);color:var(--acc-ink);border:0;font-weight:700}
+.ghost{background:none;border:1px solid var(--line);color:var(--ink)}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.best{display:flex;gap:10px;overflow-x:auto;padding-bottom:4px}
+.best div{flex:0 0 auto;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 14px;min-width:120px}
+.best b{display:block;color:var(--pr);font:700 26px/1.1 "Barlow Condensed",sans-serif}
+.best span{font-size:13px;color:var(--mute)}
+.wkh{font-weight:700;font-size:17px;margin:30px 0 2px;padding-top:12px;border-top:2px solid var(--acc)}
+.wkh+.day{margin-top:8px}
+.wkh{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.delwk{min-height:36px;padding:0 12px;font-size:13px;font-weight:400;background:none;border:1px solid var(--line);color:var(--mute)}
+.day{color:var(--mute);font-size:14px;margin:14px 0 6px;font-weight:600}
+.item{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:6px}
+.item .nm{flex:1;min-width:0}
+.item .nm small{display:block;color:var(--mute);overflow-wrap:anywhere}
+.item .w{font:700 22px/1 "Barlow Condensed",sans-serif;text-align:right;white-space:nowrap}
+.item .w small{font:400 13px "Noto Sans Thai",sans-serif;color:var(--mute);display:block}
+.del{min-height:36px;padding:0 10px;background:none;border:0;color:var(--mute);font-size:20px}
+.pr{color:var(--pr);font-weight:700;font-size:12px}
+.empty{color:var(--mute);text-align:center;padding:24px 0}
+select{font:inherit;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:8px;min-height:46px;padding:0 10px;max-width:55%}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stats div{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.stats span{font-size:13px;color:var(--mute);display:block}
+.stats b{font:700 26px/1.2 "Barlow Condensed",sans-serif}
+.stats em{font-style:normal;font-size:13px;display:block}
+.cap{color:var(--mute);font-size:13px;margin:8px 0 0}
+table{width:100%;border-collapse:collapse;font-size:14px;min-width:420px}
+th,td{padding:8px 6px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+th{color:var(--mute);font-weight:600}
+.up{color:var(--acc);font-weight:700}.down{color:var(--pr);font-weight:700}.flat{color:var(--mute)}
+#toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:8px;opacity:0;pointer-events:none;transition:opacity .2s}
+#toast.on{opacity:1}
+@media (prefers-reduced-motion:reduce){#toast{transition:none}}
+</style>
+</head>
+<body>
+<main>
+<h1>บันทึกน้ำหนักการยกเวท</h1>
+
+<div class="card">
+  <div class="grid">
+    <div class="full"><label for="ex">ท่าที่เล่น</label>
+      <input id="ex" list="exlist" placeholder="เช่น Bench Press" autocomplete="off">
+      <datalist id="exlist"></datalist></div>
+    <div><label for="wt">น้ำหนัก (กก.)</label><input id="wt" class="num" type="number" inputmode="decimal" min="0" step="0.5"></div>
+    <div><label for="rp">ครั้ง/เซต</label><input id="rp" class="num" type="number" inputmode="numeric" min="1" step="1"></div>
+    <div><label for="st">จำนวนเซต</label><input id="st" class="num" type="number" inputmode="numeric" min="1" step="1" value="1"></div>
+    <div><label for="dt">วันที่</label><input id="dt" type="date"></div>
+    <div class="full" style="grid-column:2/-1"><label for="nt">หมายเหตุ (ไม่บังคับ)</label><input id="nt" placeholder="เช่น ท่าสวย, เหนื่อยมาก"></div>
+  </div>
+  <button class="primary" id="save">บันทึก</button>
+</div>
+
+<h2>สถิติสูงสุดแต่ละท่า</h2>
+<div class="best" id="best"></div>
+
+<div class="row" style="margin-top:28px"><h2 style="margin:0">ประวัติการยก</h2>
+  <button class="ghost" id="copy">คัดลอก CSV</button></div>
+<div id="log"></div>
+</main>
+<div id="toast" role="status"></div>
+
+<script>
+var KEY="lifting-log-v1", logs=[];
+var DEFAULTS=["Bench Press","Squat","Deadlift","Overhead Press","Barbell Row","Pull-up","Lat Pulldown","Leg Press","Bicep Curl","Tricep Pushdown"];
+function load(){try{logs=JSON.parse(localStorage.getItem(KEY)||"[]")}catch(e){logs=[]}}
+function persist(){try{localStorage.setItem(KEY,JSON.stringify(logs))}catch(e){toast("บันทึกลงเครื่องไม่ได้ ข้อมูลจะหายเมื่อปิดหน้านี้")}}
+function $(id){return document.getElementById(id)}
+function today(){var d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,10)}
+function toast(m){var t=$("toast");t.textContent=m;t.classList.add("on");setTimeout(function(){t.classList.remove("on")},2200)}
+function e1rm(w,r){return r===1?w:w*(1+r/30)}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function fmtDate(s){try{return new Date(s+"T00:00:00").toLocaleDateString("th-TH",{weekday:"short",day:"numeric",month:"short",year:"numeric"})}catch(e){return s}}
+
+function render(){
+  var names=DEFAULTS.slice();
+  logs.forEach(function(l){if(names.indexOf(l.ex)<0)names.push(l.ex)});
+  $("exlist").innerHTML=names.map(function(n){return '<option value="'+esc(n)+'">'}).join("");
+
+  var best={};
+  logs.forEach(function(l){var b=best[l.ex];if(!b||l.w>b.w||(l.w===b.w&&l.r>b.r))best[l.ex]=l});
+  var keys=Object.keys(best);
+  $("best").innerHTML=keys.length?keys.map(function(k){var b=best[k];
+    return '<div><span>'+esc(k)+'</span><b>'+b.w+' กก.</b><span>x '+b.r+' ครั้ง</span></div>'}).join("")
+    :'<div class="empty" style="width:100%">ยังไม่มีข้อมูล</div>';
+
+  if(!logs.length){$("log").innerHTML='<div class="empty">กรอกท่า น้ำหนัก และจำนวนครั้ง แล้วกดบันทึก</div>';return}
+  var sorted=logs.slice().sort(function(a,b){return a.d===b.d?b.id-a.id:(a.d<b.d?1:-1)});
+  var html="",cur="",cw="";
+  sorted.forEach(function(l){
+    var w=wk(l.d);
+    if(w!==cw){cw=w;cur="";html+='<div class="wkh"><span>สัปดาห์ '+fmtWk(w)+' – '+fmtWk(addDays(w,6))+'</span><button class="delwk" data-wk="'+w+'">ลบทั้งสัปดาห์</button></div>'}
+    if(l.d!==cur){cur=l.d;html+='<div class="day">'+fmtDate(l.d)+'</div>'}
+    var isPR=best[l.ex]&&best[l.ex].id===l.id;
+    html+='<div class="item"><div class="nm">'+esc(l.ex)+(isPR?' <span class="pr">สถิติสูงสุด</span>':'')
+      +(l.n?'<small>'+esc(l.n)+'</small>':'')+'</div>'
+      +'<div class="w">'+l.w+' กก.<small>'+l.s+' x '+l.r+' ครั้ง</small></div>'
+      +'<button class="del" aria-label="ลบรายการนี้" data-id="'+l.id+'">&times;</button></div>';
+  });
+  $("log").innerHTML=html;
+}
+
+$("save").onclick=function(){
+  var ex=$("ex").value.trim(),w=parseFloat($("wt").value),r=parseInt($("rp").value,10),s=parseInt($("st").value,10)||1;
+  if(!ex){toast("กรอกชื่อท่าก่อน");$("ex").focus();return}
+  if(!(w>=0)||isNaN(w)){toast("กรอกน้ำหนักเป็นตัวเลข");$("wt").focus();return}
+  if(!(r>0)){toast("กรอกจำนวนครั้ง");$("rp").focus();return}
+  logs.push({id:Date.now(),d:$("dt").value||today(),ex:ex,w:w,r:r,s:s,n:$("nt").value.trim()});
+  persist();render();
+  $("nt").value="";$("rp").value="";$("rp").focus();
+  toast("บันทึกแล้ว");
+};
+$("log").onclick=function(e){
+  var wb=e.target.closest(".delwk");
+  if(wb){var k=wb.getAttribute("data-wk"),n=logs.filter(function(l){return wk(l.d)===k}).length;
+    if(!confirm("ลบทั้งสัปดาห์นี้ ("+n+" รายการ)? กู้คืนไม่ได้"))return;
+    logs=logs.filter(function(l){return wk(l.d)!==k});persist();render();toast("ลบแล้ว");return}
+  var b=e.target.closest(".del");if(!b)return;
+  if(!confirm("ลบรายการนี้?"))return;
+  var id=+b.getAttribute("data-id");logs=logs.filter(function(l){return l.id!==id});persist();render();
+};
+$("copy").onclick=function(){
+  if(!logs.length){toast("ยังไม่มีข้อมูลให้คัดลอก");return}
+  var rows=["date,exercise,weight_kg,reps,sets,note"].concat(logs.slice().sort(function(a,b){return a.d<b.d?-1:1}).map(function(l){
+    return [l.d,'"'+l.ex.replace(/"/g,'""')+'"',l.w,l.r,l.s,'"'+l.n.replace(/"/g,'""')+'"'].join(",")}));
+  var txt=rows.join("\n");
+  function done(){toast("คัดลอกแล้ว วางใน Excel หรือ Google Sheets ได้เลย")}
+  try{navigator.clipboard.writeText(txt).then(done,fallback)}catch(e){fallback()}
+  function fallback(){var t=document.createElement("textarea");t.value=txt;document.body.appendChild(t);t.select();try{document.execCommand("copy");done()}catch(e){toast("คัดลอกไม่สำเร็จ")}document.body.removeChild(t)}
+};
+function wk(d){var x=new Date(d+"T00:00:00");x.setDate(x.getDate()-(x.getDay()+6)%7);x.setMinutes(x.getMinutes()-x.getTimezoneOffset());return x.toISOString().slice(0,10)}
+function fmtWk(s){return new Date(s+"T00:00:00").toLocaleDateString("th-TH",{day:"numeric",month:"short"})}
+function chg(a,b){if(!b)return '<span class="flat">–</span>';var p=(a-b)/b*100,c=p>0.5?"up":p<-0.5?"down":"flat",m=p>0.5?"▲ +":p<-0.5?"▼ ":"= ";return '<span class="'+c+'">'+m+p.toFixed(1)+'%</span>'}
+function renderWeekly(){
+  var sel=$("wex"),names=[];
+  logs.forEach(function(l){if(names.indexOf(l.ex)<0)names.push(l.ex)});
+  var keep=sel.value;
+  sel.innerHTML=names.map(function(n){return '<option>'+esc(n)+'</option>'}).join("");
+  if(names.indexOf(keep)>=0)sel.value=keep;
+  if(!logs.length){$("weekly").innerHTML='<div class="empty">บันทึกอย่างน้อย 1 รายการเพื่อดูสรุป</div>';$("wtable").innerHTML='<div class="empty">ยังไม่มีข้อมูล</div>';return}
+  var W={};
+  logs.forEach(function(l){var k=wk(l.d),o=W[k]||(W[k]={v:0,s:0,d:{}});o.v+=l.w*l.r*l.s;o.s+=l.s;o.d[l.d]=1});
+  var ks=Object.keys(W).sort(),cur=W[ks[ks.length-1]],pk=ks.length>1?ks[ks.length-2]:null,pv=pk?W[pk]:null;
+  var days=Object.keys(cur.d).length,pdays=pv?Object.keys(pv.d).length:0;
+  $("weekly").innerHTML='<div class="stats">'
+    +'<div><span>ปริมาณรวม (กก.)</span><b>'+Math.round(cur.v).toLocaleString()+'</b><em>'+chg(cur.v,pv&&pv.v)+'</em></div>'
+    +'<div><span>เซตทั้งหมด</span><b>'+cur.s+'</b><em>'+chg(cur.s,pv&&pv.s)+'</em></div>'
+    +'<div><span>วันที่ฝึก</span><b>'+days+'</b><em>'+chg(days,pdays)+'</em></div></div>'
+    +'<p class="cap">สัปดาห์ที่เริ่ม '+fmtWk(ks[ks.length-1])+(pk?' เทียบกับสัปดาห์ที่เริ่ม '+fmtWk(pk):' (ยังไม่มีสัปดาห์ก่อนหน้าให้เทียบ)')+'<br>ปริมาณรวม = น้ำหนัก x ครั้ง x เซต รวมทุกท่า</p>';
+  var ex=sel.value,E={};
+  logs.filter(function(l){return l.ex===ex}).forEach(function(l){var k=wk(l.d),o=E[k]||(E[k]={w:0,m:0,v:0});
+    o.w=Math.max(o.w,l.w);o.m=Math.max(o.m,e1rm(l.w,l.r));o.v+=l.w*l.r*l.s});
+  var ek=Object.keys(E).sort(),rows="";
+  for(var i=ek.length-1;i>=0;i--){var o=E[ek[i]],p=i>0?E[ek[i-1]]:null;
+    rows+='<tr><td>'+fmtWk(ek[i])+'</td><td>'+o.w+'</td><td>'+o.m.toFixed(1)+'</td><td>'+chg(o.m,p&&p.m)+'</td><td>'+Math.round(o.v).toLocaleString()+'</td><td>'+chg(o.v,p&&p.v)+'</td></tr>'}
+  var tot=ek.length>1?'<p class="cap">ตั้งแต่สัปดาห์แรกถึงล่าสุด 1RM โดยประมาณเปลี่ยน '+chg(E[ek[ek.length-1]].m,E[ek[0]].m)+'</p>':'';
+  $("wtable").innerHTML='<table><thead><tr><th>สัปดาห์ที่เริ่ม</th><th>น้ำหนักสูงสุด</th><th>1RM โดยประมาณ</th><th>เทียบก่อนหน้า</th><th>ปริมาณ</th><th>เทียบก่อนหน้า</th></tr></thead><tbody>'+rows+'</tbody></table>'+tot
+    +'<p class="cap">1RM โดยประมาณคำนวณจากสูตร Epley: น้ำหนัก x (1 + ครั้ง/30)</p>';
+}
+function addDays(s,n){var x=new Date(s+"T00:00:00");x.setDate(x.getDate()+n);x.setMinutes(x.getMinutes()-x.getTimezoneOffset());return x.toISOString().slice(0,10)}
+$("dt").value=today();
+load();render();
+</script>
+</body>
+</html>
