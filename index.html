@@ -51,6 +51,9 @@ select{font:inherit;color:var(--ink);background:var(--card);border:1px solid var
 .stats b{font:700 26px/1.2 "Barlow Condensed",sans-serif}
 .stats em{font-style:normal;font-size:13px;display:block}
 .cap{color:var(--mute);font-size:13px;margin:8px 0 0}
+.hint{color:var(--mute);font-size:13px;margin-top:4px;min-height:20px}
+summary{cursor:pointer;font-weight:600;min-height:32px}
+.ed{font-size:18px}
 table{width:100%;border-collapse:collapse;font-size:14px;min-width:420px}
 th,td{padding:8px 6px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
 th:first-child,td:first-child{text-align:left}
@@ -69,7 +72,7 @@ th{color:var(--mute);font-weight:600}
   <div class="grid">
     <div class="full"><label for="ex">ท่าที่เล่น</label>
       <input id="ex" list="exlist" placeholder="เช่น Bench Press" autocomplete="off">
-      <datalist id="exlist"></datalist></div>
+      <datalist id="exlist"></datalist><div class="hint" id="last" aria-live="polite"></div></div>
     <div><label for="wt">น้ำหนัก (กก.)</label><input id="wt" class="num" type="number" inputmode="decimal" min="0" step="0.5"></div>
     <div><label for="rp">ครั้ง/เซต</label><input id="rp" class="num" type="number" inputmode="numeric" min="1" step="1"></div>
     <div><label for="st">จำนวนเซต</label><input id="st" class="num" type="number" inputmode="numeric" min="1" step="1" value="1"></div>
@@ -77,6 +80,7 @@ th{color:var(--mute);font-weight:600}
     <div class="full" style="grid-column:2/-1"><label for="nt">หมายเหตุ (ไม่บังคับ)</label><input id="nt" placeholder="เช่น ท่าสวย, เหนื่อยมาก"></div>
   </div>
   <button class="primary" id="save">บันทึก</button>
+  <button class="ghost" id="cancel" hidden style="width:100%;margin-top:8px">ยกเลิกการแก้ไข</button>
 </div>
 
 <h2>สถิติสูงสุดแต่ละท่า</h2>
@@ -85,6 +89,17 @@ th{color:var(--mute);font-weight:600}
 <div class="row" style="margin-top:28px"><h2 style="margin:0">ประวัติการยก</h2>
   <button class="ghost" id="copy">คัดลอก CSV</button></div>
 <div id="log"></div>
+
+<details class="card" style="margin-top:28px"><summary>สำรองและกู้ข้อมูล</summary>
+  <p class="cap">ข้อมูลเก็บในเบราว์เซอร์เครื่องนี้ ใช้ปุ่มด้านล่างเพื่อสำรองไว้ หรือย้ายไปเครื่องอื่น ปุ่มดาวน์โหลดไฟล์ใช้ได้เมื่อเปิดจากเว็บของคุณเอง (เช่น GitHub Pages) ถ้าไม่ได้ผลให้ใช้ปุ่มคัดลอกแทน</p>
+  <div class="row" style="margin-top:10px;flex-wrap:wrap;justify-content:flex-start">
+    <button class="ghost" id="bkcopy">คัดลอกข้อมูลสำรอง</button>
+    <button class="ghost" id="bkfile">ดาวน์โหลดไฟล์</button></div>
+  <label for="imptxt" style="margin-top:16px">นำเข้า: วางข้อมูลสำรองที่นี่ หรือเลือกไฟล์</label>
+  <textarea id="imptxt" rows="3" style="width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px"></textarea>
+  <input type="file" id="impfile" accept=".json,application/json" style="margin-top:8px">
+  <button class="ghost" id="bkimp" style="margin-top:8px;width:100%">นำเข้า (รวมกับข้อมูลเดิม)</button>
+</details>
 </main>
 <div id="toast" role="status"></div>
 
@@ -123,6 +138,7 @@ function render(){
     html+='<div class="item"><div class="nm">'+esc(l.ex)+(isPR?' <span class="pr">สถิติสูงสุด</span>':'')
       +(l.n?'<small>'+esc(l.n)+'</small>':'')+'</div>'
       +'<div class="w">'+l.w+' กก.<small>'+l.s+' x '+l.r+' ครั้ง</small></div>'
+      +'<button class="del ed" aria-label="แก้ไขรายการนี้" data-id="'+l.id+'">&#9998;</button>'
       +'<button class="del" aria-label="ลบรายการนี้" data-id="'+l.id+'">&times;</button></div>';
   });
   $("log").innerHTML=html;
@@ -133,16 +149,20 @@ $("save").onclick=function(){
   if(!ex){toast("กรอกชื่อท่าก่อน");$("ex").focus();return}
   if(!(w>=0)||isNaN(w)){toast("กรอกน้ำหนักเป็นตัวเลข");$("wt").focus();return}
   if(!(r>0)){toast("กรอกจำนวนครั้ง");$("rp").focus();return}
-  logs.push({id:Date.now(),d:$("dt").value||today(),ex:ex,w:w,r:r,s:s,n:$("nt").value.trim()});
+  var rec={d:$("dt").value||today(),ex:ex,w:w,r:r,s:s,n:$("nt").value.trim()};
+  if(editId){var eid=editId;logs=logs.map(function(l){if(l.id!==eid)return l;rec.id=eid;return rec})}else{rec.id=Date.now();logs.push(rec)}
+  var wasEdit=!!editId;endEdit();
   persist();render();
-  $("nt").value="";$("rp").value="";$("rp").focus();
-  toast("บันทึกแล้ว");
+  $("nt").value="";$("rp").value="";if(wasEdit)$("wt").value="";$("rp").focus();
+  toast(wasEdit?"แก้ไขแล้ว":"บันทึกแล้ว");
 };
 $("log").onclick=function(e){
   var wb=e.target.closest(".delwk");
   if(wb){var k=wb.getAttribute("data-wk"),n=logs.filter(function(l){return wk(l.d)===k}).length;
     if(!confirm("ลบทั้งสัปดาห์นี้ ("+n+" รายการ)? กู้คืนไม่ได้"))return;
     logs=logs.filter(function(l){return wk(l.d)!==k});persist();render();toast("ลบแล้ว");return}
+  var eb=e.target.closest(".ed");
+  if(eb){startEdit(+eb.getAttribute("data-id"));return}
   var b=e.target.closest(".del");if(!b)return;
   if(!confirm("ลบรายการนี้?"))return;
   var id=+b.getAttribute("data-id");logs=logs.filter(function(l){return l.id!==id});persist();render();
@@ -186,6 +206,46 @@ function renderWeekly(){
     +'<p class="cap">1RM โดยประมาณคำนวณจากสูตร Epley: น้ำหนัก x (1 + ครั้ง/30)</p>';
 }
 function addDays(s,n){var x=new Date(s+"T00:00:00");x.setDate(x.getDate()+n);x.setMinutes(x.getMinutes()-x.getTimezoneOffset());return x.toISOString().slice(0,10)}
+var editId=null,lastEx="";
+function lastOf(ex){var r=null;logs.forEach(function(l){if(l.ex===ex&&(!r||l.d>r.d||(l.d===r.d&&l.id>r.id)))r=l});return r}
+function showLast(){var ex=$("ex").value.trim(),l=ex&&lastOf(ex);
+  $("last").textContent=l?"ครั้งล่าสุด "+fmtDate(l.d)+": "+l.w+" กก. x "+l.r+" ครั้ง x "+l.s+" เซต":""}
+$("ex").oninput=showLast;
+$("ex").onchange=function(){showLast();var ex=this.value.trim();if(editId||!ex||ex===lastEx)return;lastEx=ex;
+  var l=lastOf(ex);if(l){$("wt").value=l.w;$("rp").value=l.r;$("st").value=l.s}};
+function startEdit(id){var l=logs.filter(function(x){return x.id===id})[0];if(!l)return;
+  editId=id;lastEx=l.ex;$("ex").value=l.ex;$("wt").value=l.w;$("rp").value=l.r;$("st").value=l.s;$("dt").value=l.d;$("nt").value=l.n||"";
+  $("save").textContent="บันทึกการแก้ไข";$("cancel").hidden=false;showLast();window.scrollTo(0,0);$("wt").focus()}
+function endEdit(){editId=null;$("save").textContent="บันทึก";$("cancel").hidden=true}
+$("cancel").onclick=function(){endEdit();$("wt").value="";$("rp").value="";$("nt").value="";toast("ยกเลิกการแก้ไขแล้ว")};
+
+function backupText(){return JSON.stringify({app:"lifting-log",version:1,logs:logs},null,1)}
+$("bkcopy").onclick=function(){
+  var txt=backupText();
+  function ok(){toast("คัดลอกข้อมูลสำรองแล้ว วางเก็บไว้ในโน้ตหรือไฟล์ได้เลย")}
+  function fb(){var t=document.createElement("textarea");t.value=txt;document.body.appendChild(t);t.select();try{document.execCommand("copy");ok()}catch(e){toast("คัดลอกไม่สำเร็จ")}document.body.removeChild(t)}
+  try{navigator.clipboard.writeText(txt).then(ok,fb)}catch(e){fb()}
+};
+$("bkfile").onclick=function(){
+  try{var b=new Blob([backupText()],{type:"application/json"}),a=document.createElement("a");
+    a.href=URL.createObjectURL(b);a.download="lifting-log-"+today()+".json";document.body.appendChild(a);a.click();document.body.removeChild(a);
+    toast("ถ้าไม่มีไฟล์ขึ้น ให้ใช้ปุ่มคัดลอกแทน")}catch(e){toast("ดาวน์โหลดไม่ได้ ให้ใช้ปุ่มคัดลอกแทน")}
+};
+$("impfile").onchange=function(){var f=this.files[0];if(!f)return;var r=new FileReader();
+  r.onload=function(){$("imptxt").value=r.result;toast("อ่านไฟล์แล้ว กดนำเข้าเพื่อยืนยัน")};r.readAsText(f)};
+$("bkimp").onclick=function(){
+  var data;try{data=JSON.parse($("imptxt").value)}catch(e){toast("ข้อมูลไม่ถูกต้อง อ่านเป็น JSON ไม่ได้");return}
+  var arr=Array.isArray(data)?data:(data&&data.logs);if(!Array.isArray(arr)){toast("ไม่พบรายการในข้อมูลนี้");return}
+  var have={},add=0,seed=Date.now();logs.forEach(function(l){have[l.id]=1});
+  arr.forEach(function(l,i){
+    if(!l||typeof l.ex!=="string"||!/^\d{4}-\d{2}-\d{2}$/.test(l.d)||!(+l.w>=0)||!(+l.r>0))return;
+    var id=+l.id||seed+i;if(have[id])return;have[id]=1;
+    logs.push({id:id,d:l.d,ex:l.ex.trim(),w:+l.w,r:+l.r,s:+l.s||1,n:String(l.n||"")});add++});
+  persist();render();$("imptxt").value="";
+  toast("นำเข้า "+add+" รายการ"+(arr.length>add?" (ข้าม "+(arr.length-add)+" รายการที่ซ้ำหรือไม่ถูกต้อง)":""))
+};
+
+var _render=render;render=function(){_render();showLast()};
 $("dt").value=today();
 load();render();
 </script>
